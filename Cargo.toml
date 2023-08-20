@@ -27,6 +27,7 @@ serde-aux = "4.2.0"
 unicode-segmentation = "1.10.1"
 validator = "0.16.1"
 rand = { version = "0.8.5", features = ["std_rng"] }
+thiserror = "1.0.47"
 
 # Using table-like toml syntax to avoid a super-long line!
 # [dependencies.sqlx]
