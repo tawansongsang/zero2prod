@@ -1,0 +1,7 @@
+#!/bin/bash
+
+stdocker
+
+docker start f9d0672f272a
+
+export DATABASE_URL="postgres://postgres:password@localhost:5432/newsletter"
