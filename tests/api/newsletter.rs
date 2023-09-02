@@ -11,7 +11,6 @@ async fn newsletter_are_not_delivered_to_uncomfirmed_subscribers() {
     Mock::given(path("/email"))
         .and(method("POST"))
         .respond_with(ResponseTemplate::new(200))
-        // We assert that no request is fired at Postmark!
         .expect(1)
         .mount(&app.email_server)
         .await;
