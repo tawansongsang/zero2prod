@@ -21,7 +21,7 @@ async fn confirmations_without_token_are_rejected_with_a_400() {
 async fn the_link_returned_by_subscribe_returns_a_200_if_called() {
     // Arrange
     let app = spawn_app().await;
-    let body = "name=tawansongsang%20karnkawinpong&email=tawansongsang%40gmail.com";
+    let body = "name=tawan%20test&email=tawan%40gmail.com";
 
     Mock::given(path("/email"))
         .and(method("POST"))
@@ -44,7 +44,7 @@ async fn the_link_returned_by_subscribe_returns_a_200_if_called() {
 async fn clicking_on_the_confirmation_link_confirms_a_subscriber() {
     // Arrange
     let app = spawn_app().await;
-    let body = "name=tawansongsang%20karnkawinpong&email=tawansongsang%40gmail.com";
+    let body = "name=tawan%20ktest&email=tawan%40gmail.com";
 
     Mock::given(path("/email"))
         .and(method("POST"))
@@ -69,7 +69,7 @@ async fn clicking_on_the_confirmation_link_confirms_a_subscriber() {
         .await
         .expect("Failed to fetch saved subscription.");
 
-    assert_eq!(saved.email, "tawansongsang@gmail.com");
-    assert_eq!(saved.name, "tawansongsang karnkawinpong");
+    assert_eq!(saved.email, "tawan@gmail.com");
+    assert_eq!(saved.name, "tawan test");
     assert_eq!(saved.status, "confirmed");
 }

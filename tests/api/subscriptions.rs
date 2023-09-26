@@ -9,7 +9,7 @@ use crate::helpers::spawn_app;
 async fn subscribe_returns_a_200_for_valid_form_data() {
     // Arrange
     let app = spawn_app().await;
-    let body = "name=tawansongsang%20karnkawinpong&email=tawansongsang.k%40gmail.com";
+    let body = "name=tawan%20test&email=tawan%40gmail.com";
 
     Mock::given(path("/email"))
         .and(method("POST"))
@@ -28,7 +28,7 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
 async fn subscribe_persists_the_new_subscriber() {
     // Arrange
     let app = spawn_app().await;
-    let body = "name=tawansongsang%20karnkawinpong&email=tawansongsang.k%40gmail.com";
+    let body = "name=tawan%20test&email=tawan%40gmail.com";
     Mock::given(path("/email"))
         .and(method("POST"))
         .respond_with(ResponseTemplate::new(200))
@@ -44,8 +44,8 @@ async fn subscribe_persists_the_new_subscriber() {
         .await
         .expect("Failed to fetch saved subscription.");
 
-    assert_eq!(saved.email, "tawansongsang.k@gmail.com");
-    assert_eq!(saved.name, "tawansongsang karnkawinpong");
+    assert_eq!(saved.email, "tawan@gmail.com");
+    assert_eq!(saved.name, "Tawan Test");
     assert_eq!(saved.status, "pending_confirmation");
 }
 
@@ -55,7 +55,7 @@ async fn subscribe_retuens_a_400_when_data_is_missing() {
     let app = spawn_app().await;
 
     let test_cases = vec![
-        ("name=tawansongsang%20karnkawinpong", "missing the email"),
+        ("name=tawan%20test", "missing the email"),
         ("email=tawan%40gmail.com", "missing the name"),
         ("", "missing both name and email"),
     ];
@@ -102,7 +102,7 @@ async fn subscribe_returns_a_400_when_fields_are_present_but_invalid() {
 async fn subscribe_sends_a_confirmation_email_for_valid_data() {
     // Arrange
     let app = spawn_app().await;
-    let body = "name=tawansongsang%20karnkawinpong&email=tawansongsang%40gmail.com";
+    let body = "name=tawan%test&email=tawan%40gmail.com";
 
     Mock::given(path("/email"))
         .and(method("POST"))
@@ -122,7 +122,7 @@ async fn subscribe_sends_a_confirmation_email_for_valid_data() {
 async fn subscribe_sends_a_confirmation_email_with_a_link() {
     // Arrange
     let app = spawn_app().await;
-    let body = "name=tawansongsang%20karnkawinpong&email=tawansongsang%40gmail.com";
+    let body = "name=tawan%20test&email=tawan%40gmail.com";
 
     Mock::given(path("/email"))
         .and(method("POST"))
@@ -144,7 +144,7 @@ async fn subscribe_sends_a_confirmation_email_with_a_link() {
 async fn subscribe_fails_if_there_is_a_fatel_database_error() {
     // Arrange
     let app = spawn_app().await;
-    let body = "name=tawansongsang%20karnkawinpong&email=tawansongsang%40gmail.com";
+    let body = "name=tawan%20test&email=tawan%40gmail.com";
     // Sabotage the database
     sqlx::query!("ALTER TABLE subscription_tokens DROP COLUMN subscription_token;",)
         .execute(&app.db_pool)

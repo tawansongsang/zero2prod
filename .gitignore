@@ -15,3 +15,4 @@ Cargo.lock
 
 *.sublime-project
 *.sublime-workspace
+pre_env
