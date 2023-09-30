@@ -1,14 +1,19 @@
 application:
   port: 8000
-database:
-  host: "localhost"
-  port: 5432
-  username: "postgres"
-  password: "password"
-  database_name: "newsletter"
+# database:
+#   host: "localhost"
+#   port: 5432
+#   username: "postgres"
+#   password: "password"
+#   database_name: "newsletter"
 email_client:
   base_url: "localhost"
   sender_email: "test@gmail.com"
   authorization_token: "my-secret-token"
   timeout_milliseconds: 1000
-
+database:
+  host: "db_zero2_prod"
+  port: 5432
+  username: "postgres"
+  password: "password"
+  database_name: "newsletter"
