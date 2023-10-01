@@ -1,7 +1,8 @@
-use crate::domain::SubscriberEmail;
+use crate::{domain::SubscriberEmail, authentication::AuthError};
 use crate::email_client::EmailClient;
 use crate::routes::error_chain_fmt;
 use crate::telemetry::spawn_blocking_with_tracing;
+use crate::authentication::{validate_credentials, AuthError, Credentials};
 use actix_web::http::{
     header::{HeaderMap, HeaderValue},
     StatusCode,
@@ -118,7 +119,7 @@ async fn get_stored_credentials(
 async fn validate_credentials(
     credentials: Credentials,
     pool: &PgPool,
-) -> Result<uuid::Uuid, PublishError> {
+) -> Result<uuid::Uuid, AuthError> {
     let mut user_id = None;
     let mut expected_password_hash = Secret::new(
         "$argon2id$v=19$m=15000,t=2,p=1$\
@@ -129,8 +130,7 @@ async fn validate_credentials(
 
     if let Some((stored_user_id, stored_password_hash)) =
         get_stored_credentials(&credentials.username, pool)
-            .await
-            .map_err(PublishError::UnexpectedError)?
+            .await?
     {
         user_id = Some(stored_user_id);
         expected_password_hash = stored_password_hash;
@@ -140,10 +140,11 @@ async fn validate_credentials(
         verify_password_hash(expected_password_hash, credentials.password)
     })
     .await
-    .context("Failed to spawn blocking task.")
-    .map_err(PublishError::UnexpectedError)??;
+    .context("Failed to spawn blocking task.")??;
 
-    user_id.ok_or_else(|| PublishError::AuthError(anyhow::anyhow!("Unknown username.")))
+    user_id
+        .ok_or_else(|| anyhow::anyhow!("Unknown username."))
+        .map_err(AuthError::InvalidCredentials)
 }
 
 #[tracing::instrument(
@@ -153,10 +154,11 @@ async fn validate_credentials(
 fn verify_password_hash(
     expected_password_hash: Secret<String>,
     password_candidate: Secret<String>,
-) -> Result<(), PublishError> {
-    let expected_password_hash = PasswordHash::new(expected_password_hash.expose_secret())
-        .context("Failed to parse hash in PHC string format.")
-        .map_err(PublishError::UnexpectedError)?;
+) -> Result<(), AuthError> {
+    let expected_password_hash = PasswordHash::new(
+            expected_password_hash.expose_secret()
+        )
+        .context("Failed to parse hash in PHC string format.")?;
 
     Argon2::default()
         .verify_password(
@@ -164,7 +166,7 @@ fn verify_password_hash(
             &expected_password_hash,
         )
         .context("Invalid password.")
-        .map_err(PublishError::AuthError)
+        .map_err(AuthError::InvalidCredentials)
 }
 
 #[tracing::instrument(
@@ -178,10 +180,18 @@ pub async fn publish_newsletter(
     email_client: web::Data<EmailClient>,
     request: HttpRequest,
 ) -> Result<HttpResponse, PublishError> {
-    let credentials = basic_authentication(request.headers()).map_err(PublishError::AuthError)?;
-    tracing::Span::current().record("username", &tracing::field::display(&credentials.username));
-    let user_id = validate_credentials(credentials, &pool).await?;
-    tracing::Span::current().record("user_id", &tracing::field::display(&user_id));
+    let credentials = basic_authentication(request.headers())
+        .map_err(PublishError::AuthError)?;
+    tracing::Span::current()
+        .record("username", &tracing::field::display(&credentials.username));
+    let user_id = validate_credentials(credentials, &pool)
+        .await
+        .map_err(|e| match e {
+            AuthError::InvalidCredentials(_) => PublishError::AuthError(e.into()),
+            AuthError::UnexpectedError(_) => PublishError::UnexpectedError(e.into()),
+        })?;
+    tracing::Span::current()
+        .record("user_id", &tracing::field::display(&user_id));
 
     let subscribers = get_confirmed_subscribers(&pool).await?;
     for subscriber in subscribers {
