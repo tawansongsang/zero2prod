@@ -13,8 +13,8 @@ pub enum AuthError {
 }
 
 pub struct Credentials {
-    username: String,
-    password: Secret<String>,
+    pub username: String,
+    pub password: Secret<String>,
 }
 
 #[tracing::instrument(name = "Validate credentials", skip(credentials, pool))]
