@@ -59,7 +59,7 @@ impl Application {
 }
 
 pub struct ApplicationBaseUrl(pub String);
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct HmacSecret(pub Secret<String>);
 
 pub fn run(
