@@ -44,7 +44,7 @@ async fn the_link_returned_by_subscribe_returns_a_200_if_called() {
 async fn clicking_on_the_confirmation_link_confirms_a_subscriber() {
     // Arrange
     let app = spawn_app().await;
-    let body = "name=tawan%20ktest&email=tawan%40gmail.com";
+    let body = "name=tawan%20test&email=tawan%40gmail.com";
 
     Mock::given(path("/email"))
         .and(method("POST"))

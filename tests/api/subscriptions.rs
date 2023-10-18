@@ -28,7 +28,7 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
 async fn subscribe_persists_the_new_subscriber() {
     // Arrange
     let app = spawn_app().await;
-    let body = "name=tawan%20test&email=tawan%40gmail.com";
+    let body = "name=Tawan%20Test&email=tawan%40gmail.com";
     Mock::given(path("/email"))
         .and(method("POST"))
         .respond_with(ResponseTemplate::new(200))
